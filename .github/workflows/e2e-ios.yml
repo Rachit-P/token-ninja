@@ -32,6 +32,17 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # A fresh simulator spends several minutes on first-boot setup, so start it now and
+      # let it finish while the app builds.
+      - name: Start booting simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[]
+                      | select(.name | startswith("iPhone"))][0].udid')
+          echo "Using simulator $UDID"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+
       - name: Start API
         run: ./scripts/start-api-for-e2e.sh
 
@@ -55,17 +66,11 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO -quiet
 
-      - name: Boot simulator and install app
+      - name: Install app on simulator
         working-directory: app/ios
         run: |
-          UDID=$(xcrun simctl list devices available -j \
-            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[]
-                      | select(.name | startswith("iPhone"))][0].udid')
-          echo "Using simulator $UDID"
-          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
-          xcrun simctl boot "$UDID"
-          xcrun simctl bootstatus "$UDID" -b
-          xcrun simctl install "$UDID" "$(ls -d build/Build/Products/Release-iphonesimulator/*.app | head -1)"
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          xcrun simctl install "$SIM_UDID" "$(ls -d build/Build/Products/Release-iphonesimulator/*.app | head -1)"
 
       - name: Install Maestro
         run: |

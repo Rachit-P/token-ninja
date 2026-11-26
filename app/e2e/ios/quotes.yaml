@@ -18,7 +18,8 @@ appId: com.rachitp.tokenninja
 - extendedWaitUntil:
     visible: "25 USD = 2500 tokens \\(1 USD = 100 tokens\\)"
     timeout: 10000
-- hideKeyboard
+# The decimal pad has no dismiss key, so tap plain text to close the keyboard.
+- tapOn: "Turn currency into compute tokens."
 - tapOn:
     id: currency-INR
 - extendedWaitUntil:
@@ -26,6 +27,9 @@ appId: com.rachitp.tokenninja
     timeout: 10000
 
 # Spend tokens: the same 500 tokens are worth different compute at each vendor
+- scrollUntilVisible:
+    element:
+      id: vendor-gpu-cloud
 - tapOn:
     id: vendor-gpu-cloud
 - tapOn:
@@ -34,7 +38,8 @@ appId: com.rachitp.tokenninja
 - extendedWaitUntil:
     visible: "500 tokens = 2 GPU-hour"
     timeout: 10000
-- hideKeyboard
+# The decimal pad has no dismiss key, so tap plain text to close the keyboard.
+- tapOn: "Turn currency into compute tokens."
 - tapOn:
     id: vendor-render-farm
 - extendedWaitUntil:
