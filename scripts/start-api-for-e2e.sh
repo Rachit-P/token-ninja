@@ -12,7 +12,9 @@ uv sync --quiet
 uv run token-ninja-seed
 # Run uvicorn from the venv directly, not via `uv run`: a long-lived uv process holds uv's
 # cache lock, which makes setup-uv's post-job cache prune time out and fail the job.
-nohup .venv/bin/uvicorn token_ninja_api.main:app --host 127.0.0.1 --port 8000 > e2e-api.log 2>&1 &
+# Ask uv where the environment is, since it isn't always ./.venv (UV_PROJECT_ENVIRONMENT, etc.).
+UVICORN="$(uv run --no-sync python -c 'import os, sys; print(os.path.join(sys.prefix, "bin", "uvicorn"))')"
+nohup "$UVICORN" token_ninja_api.main:app --host 127.0.0.1 --port 8000 > e2e-api.log 2>&1 &
 
 for _ in $(seq 1 30); do
   if curl -sf http://127.0.0.1:8000/health > /dev/null; then
