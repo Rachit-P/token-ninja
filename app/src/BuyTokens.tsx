@@ -20,14 +20,17 @@ export function BuyTokens({ currencies }: { currencies: Currency[] }) {
       <Chips
         options={currencies.map((c) => ({ value: c.code, label: c.code }))}
         selected={code}
+        testIDPrefix="currency"
         onSelect={setCode}
       />
       <AmountInput
+        testID="purchase-amount"
         value={amount}
         onChangeText={(t) => setAmount(sanitizeAmount(t))}
         placeholder={`Amount in ${code ?? 'currency'}`}
       />
       <Result
+        testID="purchase-result"
         error={error}
         text={
           data &&

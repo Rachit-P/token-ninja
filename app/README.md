@@ -33,3 +33,28 @@ npm run gen:api
 ```bash
 npm run typecheck
 ```
+
+## End-to-end tests
+
+Both suites expect the API on `localhost:8000`. Start it with SQLite (no Postgres needed):
+
+```bash
+../scripts/start-api-for-e2e.sh
+```
+
+**Web / Mac (Playwright):** builds the web app, serves it on port 8081, and runs `e2e/web`.
+
+```bash
+npx playwright install webkit
+npm run test:web -- --project=webkit    # or chromium, firefox
+```
+
+**iOS (Maestro):** needs a Mac with Xcode and [Maestro](https://maestro.mobile.dev) installed.
+
+```bash
+npm run ios          # build and install in the simulator
+npm run test:ios     # runs e2e/ios
+```
+
+Both suites check the same behaviour, so a change to one should usually be mirrored in the other.
+UI elements are found by `testID`, which becomes `data-testid` on web and an accessibility id on iOS.

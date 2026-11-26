@@ -1,0 +1,42 @@
+# Maestro flow for the native iOS app. Run with: maestro test e2e/ios
+# Mirrors e2e/web/quotes.spec.ts so every platform checks the same behaviour.
+appId: com.rachitp.tokenninja
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: currency-USD
+    timeout: 30000
+
+# Buy tokens
+- tapOn:
+    id: currency-USD
+- tapOn:
+    id: purchase-amount
+- inputText: "25"
+- extendedWaitUntil:
+    visible: "25 USD = 2500 tokens \\(1 USD = 100 tokens\\)"
+    timeout: 10000
+- hideKeyboard
+- tapOn:
+    id: currency-INR
+- extendedWaitUntil:
+    visible: "25 INR = 30 tokens \\(1 INR = 1.2 tokens\\)"
+    timeout: 10000
+
+# Spend tokens: the same 500 tokens are worth different compute at each vendor
+- tapOn:
+    id: vendor-gpu-cloud
+- tapOn:
+    id: redeem-tokens
+- inputText: "500"
+- extendedWaitUntil:
+    visible: "500 tokens = 2 GPU-hour"
+    timeout: 10000
+- hideKeyboard
+- tapOn:
+    id: vendor-render-farm
+- extendedWaitUntil:
+    visible: "500 tokens = 125 render-minute"
+    timeout: 10000

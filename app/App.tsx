@@ -25,7 +25,11 @@ export default function App() {
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.title}>token-ninja</Text>
           <Text style={styles.subtitle}>Turn currency into compute tokens.</Text>
-          {error && <Text style={styles.error}>{error}</Text>}
+          {error && (
+            <Text testID="catalog-error" style={styles.error}>
+              {error}
+            </Text>
+          )}
           {!catalog && !error && <ActivityIndicator />}
           {catalog && (
             <>
