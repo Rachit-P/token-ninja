@@ -16,9 +16,22 @@ token-ninja is an app for that future. It lets you turn regular currency into to
 - **Compute rental:** Spend tokens to rent compute for specific tasks.
 - **Dashboard:** See your balance, upcoming SIP and SWP runs, and spending over time.
 
+## How redemption works
+
+Tokens are priced like credit card reward points: each vendor sets how many tokens one unit of its compute costs, so the same tokens stretch further at some vendors than others. For example, 500 tokens might buy 2 GPU-hours at one vendor or 125 render-minutes at another. Rates are stored as data, so adding a vendor or changing a ratio needs no code change.
+
+## Repository layout
+
+| Folder | What it is | Stack |
+| --- | --- | --- |
+| [`api/`](api/) | Backend: rates, conversion math, HTTP API | Python, FastAPI, Postgres |
+| [`app/`](app/) | Client for iPhone and Mac | Expo (React Native + TypeScript) |
+
+The two are separate apps that deploy independently and talk only over HTTP. The app's API types are generated from the backend's OpenAPI spec. See each folder's README to run it.
+
 ## Status
 
-Early concept. This repository currently holds only the idea; design and code will follow.
+Early stage. The first version converts currency to tokens and quotes token redemption at different vendors. SIP and SWP scheduling come next.
 
 ## Contributing
 

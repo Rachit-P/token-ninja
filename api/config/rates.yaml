@@ -1,0 +1,31 @@
+# Starting rates for token-ninja. Load them into the database with `uv run token-ninja-seed`.
+#
+# Buying tokens: each currency has a rate of tokens per 1 unit of that currency.
+# Spending tokens: each vendor sets how many tokens one unit of its compute costs.
+# Like credit card reward points, the same token is worth more at some vendors than others.
+# Add a vendor or currency here (or straight into the database) without touching code.
+
+currencies:
+  - code: USD
+    name: US Dollar
+    tokens_per_unit: "100"
+  - code: EUR
+    name: Euro
+    tokens_per_unit: "108"
+  - code: INR
+    name: Indian Rupee
+    tokens_per_unit: "1.2"
+
+vendors:
+  - id: gpu-cloud
+    name: GPU Cloud
+    unit: GPU-hour
+    tokens_per_unit: "250"
+  - id: llm-api
+    name: LLM API
+    unit: 1M LLM tokens
+    tokens_per_unit: "300"
+  - id: render-farm
+    name: Render Farm
+    unit: render-minute
+    tokens_per_unit: "4"
