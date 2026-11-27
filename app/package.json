@@ -25,7 +25,8 @@
     "typecheck": "tsc --noEmit",
     "gen:api": "npx -y openapi-typescript@7 http://localhost:8000/openapi.json -o src/api/schema.ts",
     "test:web": "playwright test",
-    "test:ios": "maestro test e2e/ios"
+    "test:ios": "maestro test e2e/ios",
+    "ios:sim": "../scripts/build-ios-sim.sh && xcrun simctl launch booted com.rachitp.tokenninja"
   },
   "private": true
 }

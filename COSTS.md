@@ -8,7 +8,7 @@ Prices and allowances change, so check the linked pages before relying on a numb
 
 | Tool or service | Used for | Why it's free | What could make it paid |
 | --- | --- | --- | --- |
-| [GitHub Actions](https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions) | CI, iOS and macOS E2E tests | Standard runners, including macOS, are free for **public** repositories | Making the repo **private**: minutes then count against the account's monthly allowance, and macOS minutes count at a much higher multiplier than Linux (historically 10x). The iOS job runs about 20 to 30 macOS minutes per push. Larger runners are always paid. |
+| [GitHub Actions](https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions) | CI, iOS and macOS E2E tests | Standard runners, including macOS, are free for **public** repositories | Making the repo **private**: minutes then count against the account's monthly allowance, and macOS minutes count at a much higher multiplier than Linux (historically 10x). The iOS job runs about 15 macOS minutes per push. Larger runners are always paid. |
 | [Playwright](https://playwright.dev) | Web and WebKit (Mac) E2E tests | Open source (Apache 2.0) | Nothing. Only optional third-party cloud browser grids are paid. |
 | [Maestro CLI](https://maestro.mobile.dev) | iOS E2E tests (Android later) | Open source, runs on our own CI runners | **Maestro Cloud** (hosted devices and parallel runs) is paid. **We don't use it.** |
 | [Expo SDK and Expo Go](https://expo.dev) | App framework, running the app on a phone during development | Open source / free app | Nothing for local development. |
