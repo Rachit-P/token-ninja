@@ -62,6 +62,15 @@ jobs:
         working-directory: app
         run: maestro --device "$SIM_UDID" test e2e/ios --format junit --output maestro-report.xml
 
+      # Artifacts can be hard to open, so also print what was on screen into the job log.
+      - name: Show screen and API log on failure
+        if: failure()
+        working-directory: app
+        run: |
+          maestro --device "$SIM_UDID" hierarchy | grep -oE '"(accessibilityText|text|resource-id)" *: *"[^"]+"' | sort -u || true
+          echo "--- API log ---"
+          tail -n 40 ../api/e2e-api.log || true
+
       - name: Upload report
         if: failure()
         uses: actions/upload-artifact@v4
