@@ -14,10 +14,12 @@ export function Chips<T extends string>({
   options,
   selected,
   onSelect,
+  testIDPrefix,
 }: {
   options: { value: T; label: string }[];
   selected: T | undefined;
   onSelect: (value: T) => void;
+  testIDPrefix: string;
 }) {
   return (
     <View style={styles.chips}>
@@ -26,6 +28,7 @@ export function Chips<T extends string>({
         return (
           <Pressable
             key={option.value}
+            testID={`${testIDPrefix}-${option.value}`}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             onPress={() => onSelect(option.value)}
@@ -43,13 +46,16 @@ export function AmountInput({
   value,
   onChangeText,
   placeholder,
+  testID,
 }: {
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
+  testID: string;
 }) {
   return (
     <TextInput
+      testID={testID}
       style={styles.input}
       value={value}
       onChangeText={onChangeText}
@@ -60,9 +66,19 @@ export function AmountInput({
   );
 }
 
-export function Result({ text, error }: { text?: string; error?: string }) {
-  if (error) return <Text style={styles.error}>{error}</Text>;
-  if (text) return <Text style={styles.result}>{text}</Text>;
+export function Result({ text, error, testID }: { text?: string; error?: string; testID: string }) {
+  if (error)
+    return (
+      <Text testID={testID} style={styles.error}>
+        {error}
+      </Text>
+    );
+  if (text)
+    return (
+      <Text testID={testID} style={styles.result}>
+        {text}
+      </Text>
+    );
   return null;
 }
 

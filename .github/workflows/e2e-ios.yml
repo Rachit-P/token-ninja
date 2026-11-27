@@ -1,0 +1,83 @@
+# End-to-end tests for the native iOS app: a simulator build driven by Maestro on a
+# macOS runner. See app/e2e/ios.
+name: E2E iOS (Simulator)
+
+on:
+  push:
+  pull_request:
+
+# Same-repo PRs are already covered by the push run, so pull_request only runs for forks.
+# That keeps each commit to one run of these (comparatively slow) macOS jobs.
+
+concurrency:
+  group: e2e-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-simulator:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    # React Native 0.88 needs Xcode 26 (Swift 6.2), which macos-15 images don't ship by default.
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # A fresh simulator spends several minutes on first-boot setup, so start it now and
+      # let it finish while the app builds.
+      - name: Start booting simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[]
+                      | select(.name | startswith("iPhone"))][0].udid')
+          echo "Using simulator $UDID"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+
+      - name: Start API
+        run: ./scripts/start-api-for-e2e.sh
+
+      - name: Install app dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Build and install app on simulator
+        run: ./scripts/build-ios-sim.sh "$SIM_UDID"
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Run Maestro flows
+        working-directory: app
+        run: maestro --device "$SIM_UDID" test e2e/ios --format junit --output maestro-report.xml
+
+      # Artifacts can be hard to open, so also print what was on screen into the job log.
+      - name: Show screen and API log on failure
+        if: failure()
+        working-directory: app
+        run: |
+          maestro --device "$SIM_UDID" hierarchy | grep -oE '"(accessibilityText|text|resource-id)" *: *"[^"]+"' | sort -u || true
+          echo "--- API log ---"
+          tail -n 40 ../api/e2e-api.log || true
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-report-ios
+          path: |
+            app/maestro-report.xml
+            ~/.maestro/tests
+            api/e2e-api.log
+          retention-days: 7
