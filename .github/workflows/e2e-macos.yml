@@ -1,0 +1,55 @@
+# End-to-end tests for the Mac target: the app's web build in WebKit (Safari's engine),
+# driven by Playwright on a macOS runner. See app/e2e/web.
+name: E2E macOS (WebKit)
+
+on:
+  push:
+  pull_request:
+
+# Same-repo PRs are already covered by the push run, so pull_request only runs for forks.
+# That keeps each commit to one run of these (comparatively slow) macOS jobs.
+
+concurrency:
+  group: e2e-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  webkit:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    # React Native 0.88 needs Xcode 26 (Swift 6.2), which macos-15 images don't ship by default.
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Start API
+        run: ./scripts/start-api-for-e2e.sh
+
+      - name: Install app dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Install WebKit
+        working-directory: app
+        run: npx playwright install webkit
+
+      - name: Run Playwright tests
+        working-directory: app
+        run: npx playwright test --project=webkit
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-webkit
+          path: |
+            app/playwright-report
+            app/test-results
+            api/e2e-api.log
+          retention-days: 7

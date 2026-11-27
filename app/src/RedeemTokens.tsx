@@ -22,6 +22,7 @@ export function RedeemTokens({ vendors }: { vendors: Vendor[] }) {
       <Chips
         options={vendors.map((v) => ({ value: v.id, label: v.name }))}
         selected={vendorId}
+        testIDPrefix="vendor"
         onSelect={setVendorId}
       />
       {vendor && (
@@ -30,11 +31,13 @@ export function RedeemTokens({ vendors }: { vendors: Vendor[] }) {
         </Text>
       )}
       <AmountInput
+        testID="redeem-tokens"
         value={tokens}
         onChangeText={(t) => setTokens(sanitizeAmount(t))}
         placeholder="Tokens to spend"
       />
       <Result
+        testID="redeem-result"
         error={error}
         text={data && `${trimDecimal(data.tokens)} tokens = ${trimDecimal(data.units)} ${data.unit}`}
       />

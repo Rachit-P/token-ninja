@@ -22,10 +22,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>token-ninja</Text>
           <Text style={styles.subtitle}>Turn currency into compute tokens.</Text>
-          {error && <Text style={styles.error}>{error}</Text>}
+          {error && (
+            <Text testID="catalog-error" style={styles.error}>
+              {error}
+            </Text>
+          )}
           {!catalog && !error && <ActivityIndicator />}
           {catalog && (
             <>

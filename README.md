@@ -29,6 +29,16 @@ Tokens are priced like credit card reward points: each vendor sets how many toke
 
 The two are separate apps that deploy independently and talk only over HTTP. The app's API types are generated from the backend's OpenAPI spec. See each folder's README to run it.
 
+## Tests on every push
+
+| Workflow | Platform | How |
+| --- | --- | --- |
+| CI | API and app code | pytest, ruff, TypeScript typecheck |
+| E2E iOS | iPhone app | Maestro drives a Release build in the iOS Simulator (`app/e2e/ios`) |
+| E2E macOS | Mac | Playwright drives the web build in WebKit, Safari's engine (`app/e2e/web`) |
+
+Android (Maestro on an Android emulator) and web (Playwright on Chrome and Firefox) will get their own workflows, reusing the same tests. See [COSTS.md](COSTS.md) for what is free and what could become paid.
+
 ## Status
 
 Early stage. The first version converts currency to tokens and quotes token redemption at different vendors. SIP and SWP scheduling come next.
