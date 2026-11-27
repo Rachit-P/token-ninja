@@ -1,0 +1,19 @@
+# Local development services. Start with: docker compose up -d db
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tokenninja
+      POSTGRES_PASSWORD: tokenninja
+      POSTGRES_DB: tokenninja
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tokenninja"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
