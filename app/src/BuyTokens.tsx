@@ -1,24 +1,27 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { api, Currency } from './api/client';
 import { AmountInput, Card, Chips, Result } from './components/ui';
-import { sanitizeAmount, trimDecimal } from './format';
+import { isPositiveAmount, sanitizeAmount, trimDecimal } from './format';
 import { useQuote } from './useQuote';
 
 export function BuyTokens({ currencies }: { currencies: Currency[] }) {
   const [code, setCode] = useState(currencies[0]?.code);
   const [amount, setAmount] = useState('');
 
-  const ready = code && Number(amount) > 0;
-  const { data, error } = useQuote(ready ? () => api.quotePurchase(code, amount) : null, [
-    code,
-    amount,
-  ]);
+  const key = code && isPositiveAmount(amount) ? `${code}|${amount}` : null;
+  const { data, error, pending } = useQuote(key, (signal) =>
+    api.quotePurchase(code!, amount, signal),
+  );
+  const options = useMemo(
+    () => currencies.map((c) => ({ value: c.code, label: c.code })),
+    [currencies],
+  );
 
   return (
     <Card title="Buy tokens">
       <Chips
-        options={currencies.map((c) => ({ value: c.code, label: c.code }))}
+        options={options}
         selected={code}
         testIDPrefix="currency"
         onSelect={setCode}
@@ -31,6 +34,7 @@ export function BuyTokens({ currencies }: { currencies: Currency[] }) {
       />
       <Result
         testID="purchase-result"
+        pending={pending}
         error={error}
         text={
           data &&

@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from token_ninja_api.conversion import ConversionError
 from token_ninja_api.routers import catalog, quotes
 from token_ninja_api.settings import get_settings
 
@@ -17,6 +19,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.exception_handler(ConversionError)
+    def conversion_error(_: Request, exc: ConversionError) -> JSONResponse:
+        # A bad conversion is the caller's input problem, not a server crash.
+        return JSONResponse(status_code=422, content={"detail": str(exc)})
 
     @app.get("/health", tags=["meta"])
     def health() -> dict[str, str]:

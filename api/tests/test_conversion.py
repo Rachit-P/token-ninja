@@ -30,3 +30,8 @@ def test_rejects_non_positive_rates():
         currency_to_tokens(Decimal("1"), Decimal("0"))
     with pytest.raises(ConversionError):
         tokens_to_vendor_units(Decimal("1"), Decimal("0"))
+
+
+def test_overflowing_result_raises_conversion_error():
+    with pytest.raises(ConversionError):
+        currency_to_tokens(Decimal("1e30"), Decimal("100"))
