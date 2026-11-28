@@ -12,7 +12,10 @@ export function trimDecimal(value: string): string {
  * so the user never types something the API will reject.
  */
 export function sanitizeAmount(input: string): string {
-  const cleaned = input.replace(/[^0-9.]/g, '');
+  // Many locales' decimal keypads type a comma ("12,5"); treat it as the decimal point
+  // instead of silently dropping it, which turned 12,5 into 125.
+  const normalized = input.includes('.') ? input : input.replace(',', '.');
+  const cleaned = normalized.replace(/[^0-9.]/g, '');
   const [whole, ...rest] = cleaned.split('.');
   const wholePart = whole.replace(/^0+(?=\d)/, '').slice(0, MAX_WHOLE_DIGITS);
   if (!rest.length) return wholePart;
