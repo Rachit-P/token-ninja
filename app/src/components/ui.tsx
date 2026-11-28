@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export function Card({ title, children }: { title: string; children: ReactNode }) {
@@ -10,7 +10,7 @@ export function Card({ title, children }: { title: string; children: ReactNode }
   );
 }
 
-export function Chips<T extends string>({
+function ChipsInner<T extends string>({
   options,
   selected,
   onSelect,
@@ -62,11 +62,23 @@ export function AmountInput({
       placeholder={placeholder}
       keyboardType="decimal-pad"
       inputMode="decimal"
+      autoCorrect={false}
+      maxLength={21}
     />
   );
 }
 
-export function Result({ text, error, testID }: { text?: string; error?: string; testID: string }) {
+export function Result({
+  text,
+  error,
+  pending,
+  testID,
+}: {
+  text?: string;
+  error?: string;
+  pending?: boolean;
+  testID: string;
+}) {
   if (error)
     return (
       <Text testID={testID} style={styles.error}>
@@ -75,7 +87,7 @@ export function Result({ text, error, testID }: { text?: string; error?: string;
     );
   if (text)
     return (
-      <Text testID={testID} style={styles.result}>
+      <Text testID={testID} style={[styles.result, pending && styles.stale]}>
         {text}
       </Text>
     );
@@ -114,5 +126,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   result: { fontSize: 16, fontWeight: '500' },
+  // A result for older inputs, shown dimmed while the new quote loads.
+  stale: { opacity: 0.4 },
   error: { color: '#b42318' },
 });
+
+/** Re-renders only when its options or selection change, not on every keystroke. */
+export const Chips = memo(ChipsInner) as typeof ChipsInner;

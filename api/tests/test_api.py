@@ -37,3 +37,25 @@ def test_unknown_currency_and_vendor_return_404(client):
 def test_rejects_non_positive_amount(client):
     res = client.post("/v1/quotes/purchase", json={"currency": "USD", "amount": "0"})
     assert res.status_code == 422
+
+
+def test_huge_amounts_are_rejected_not_500(client):
+    res = client.post("/v1/quotes/purchase", json={"currency": "USD", "amount": "1" + "0" * 30})
+    assert res.status_code == 422
+    res = client.post(
+        "/v1/quotes/redemption", json={"vendor_id": "gpu-cloud", "tokens": "1" + "0" * 30}
+    )
+    assert res.status_code == 422
+
+
+def test_rejects_more_than_eight_decimals(client):
+    res = client.post("/v1/quotes/purchase", json={"currency": "USD", "amount": "0.000000001"})
+    assert res.status_code == 422
+
+
+def test_decimals_are_fixed_point_never_scientific(client):
+    body = client.post("/v1/quotes/purchase", json={"currency": "USD", "amount": "1e2"}).json()
+    assert body["amount"] == "100"
+    assert body["tokens"] == "10000.00"
+    rates = [c["tokens_per_unit"] for c in client.get("/v1/currencies").json()]
+    assert all("E" not in r and "e" not in r for r in rates)

@@ -1,31 +1,61 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { ApiError } from './api/client';
+import { AbortedError, ApiError } from './api/client';
+
+const DEBOUNCE_MS = 300;
+
+export type QuoteState<T> = {
+  /** The latest quote for the current inputs, or the previous one while a new one loads. */
+  data: T | undefined;
+  error: string | undefined;
+  /** True while a newer quote is on its way, so the UI can mark `data` as out of date. */
+  pending: boolean;
+};
 
 /**
- * Fetches a quote whenever its inputs change, after a short pause in typing.
- * Pass `null` as the fetcher when the inputs are incomplete.
+ * Fetches a quote when `key` changes, after a short pause in typing.
+ *
+ * - `key` identifies the inputs (e.g. "USD|25"); pass `null` while the inputs are incomplete.
+ * - Only the newest request can update state, and older in-flight requests are aborted, so a
+ *   slow earlier response can never overwrite a newer one.
+ * - The previous result stays on screen (marked pending) instead of flickering away on every
+ *   keystroke.
  */
-export function useQuote<T>(fetcher: (() => Promise<T>) | null, deps: unknown[]) {
-  const [data, setData] = useState<T>();
-  const [error, setError] = useState<string>();
+export function useQuote<T>(
+  key: string | null,
+  fetcher: (signal: AbortSignal) => Promise<T>,
+): QuoteState<T> {
+  const [state, setState] = useState<QuoteState<T>>({
+    data: undefined,
+    error: undefined,
+    pending: false,
+  });
+  // Always call the latest fetcher without making it an effect dependency.
+  const fetcherRef = useRef(fetcher);
+  fetcherRef.current = fetcher;
 
   useEffect(() => {
-    setData(undefined);
-    setError(undefined);
-    if (!fetcher) return;
-    let cancelled = false;
+    if (key === null) {
+      setState({ data: undefined, error: undefined, pending: false });
+      return;
+    }
+    setState((s) => ({ ...s, pending: true }));
+    const controller = new AbortController();
     const timer = setTimeout(() => {
-      fetcher()
-        .then((result) => !cancelled && setData(result))
-        .catch((e) => !cancelled && setError(e instanceof ApiError ? e.message : String(e)));
-    }, 300);
+      fetcherRef
+        .current(controller.signal)
+        .then((data) => setState({ data, error: undefined, pending: false }))
+        .catch((e) => {
+          if (e instanceof AbortedError || controller.signal.aborted) return;
+          const error = e instanceof ApiError ? e.message : String(e);
+          setState({ data: undefined, error, pending: false });
+        });
+    }, DEBOUNCE_MS);
     return () => {
-      cancelled = true;
       clearTimeout(timer);
+      controller.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [key]);
 
-  return { data, error };
+  return state;
 }
